@@ -3,290 +3,313 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fruteec - Actualizador de Plantilla Comex</title>
+    <title>Fruteec x Selaski - Smart Comex</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .drop-zone { border: 2px dashed #e2e8f0; transition: all 0.3s ease; }
-        .drop-zone.active { border-color: #10b981; background-color: #f0fdf4; }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600;700;900&display=swap');
+        
+        :root {
+            --primary: #1F335E;
+            --accent: #F3995D;
+            --teal: #1E9EA6;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--primary);
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(39, 81, 171, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(30, 158, 166, 0.2) 0%, transparent 50%);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .tech-grid {
+            background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), 
+                              linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .glass-card {
+            background: rgba(31, 51, 94, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .drop-zone {
+            border: 2px dashed rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--teal);
+            background: rgba(30, 158, 166, 0.05);
+        }
+
+        .btn-glow {
+            background: linear-gradient(135deg, var(--accent) 0%, #d47a3d 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-glow:hover:not(:disabled) {
+            box-shadow: 0 0 20px rgba(243, 153, 93, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .btn-download-final {
+            background-color: #ffffff !important;
+            color: #1F335E !important;
+            font-weight: 900;
+            border: 2px solid #ffffff;
+        }
+        
+        .btn-download-final:hover {
+            background-color: var(--accent) !important;
+            color: #ffffff !important;
+            border-color: var(--accent);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        #progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--teal), var(--accent));
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="tech-grid flex flex-col">
 
-    <!-- Header -->
-    <header class="bg-white shadow-sm border-b px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center space-x-4">
-            <div class="flex items-center space-x-3 border-r pr-4">
-                <div class="bg-green-600 text-white px-3 py-1 rounded font-bold text-sm tracking-tight uppercase">FRUTEEC</div>
-                <div class="bg-blue-600 text-white px-3 py-1 rounded font-bold text-sm tracking-tight uppercase">SELASKI</div>
-            </div>
-            <div>
-                <h1 class="text-lg font-semibold text-slate-800 uppercase tracking-tight">Actualizador de Plantilla Comex</h1>
-                <p class="text-[10px] text-slate-400 font-medium uppercase tracking-widest">Plataforma de Sincronización Logística</p>
-            </div>
+    <nav class="glass-card sticky top-0 z-50 px-8 py-4 flex justify-between items-center border-b border-white/10">
+        <div class="flex items-center space-x-6">
+            <img src="https://fruteec.cl/wp-content/uploads/2021/04/Logo-Fruteec-Blanco.png" alt="Fruteec" class="h-8">
+            <div class="h-6 w-[1px] bg-white/30"></div>
+            <img src="https://www.selaski.com/hubfs/Selaski-Logo-2022-White.png" alt="Selaski" class="h-8">
         </div>
-    </header>
+        <div class="text-right">
+            <p id="clock" class="text-xs font-mono text-white/70">--:--:--</p>
+            <p class="text-[9px] text-teal-400 font-bold uppercase tracking-widest">Sincronización v2.2</p>
+        </div>
+    </nav>
 
-    <main class="flex-grow p-6 lg:p-12 max-w-5xl mx-auto w-full">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <!-- Fuente: Reporte Selaski -->
-            <div id="drop-selaski" class="drop-zone p-10 rounded-3xl bg-white flex flex-col items-center text-center cursor-pointer hover:shadow-xl transition-all">
-                <div class="w-14 h-14 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mb-4">
-                    <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
-                </div>
-                <h3 class="font-bold text-slate-800">1. Reporte Selaski</h3>
-                <p class="text-xs text-slate-500 mb-2">(Informe General de Productos)</p>
-                <p id="label-selaski" class="text-[10px] bg-slate-100 px-3 py-1 rounded-full text-slate-600 font-bold uppercase">Esperando Archivo Fuente</p>
-                <input type="file" id="input-selaski" class="hidden" accept=".xlsx, .xls">
+    <main class="flex-grow flex flex-col items-center justify-center p-6">
+        <div class="max-w-4xl w-full">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-black uppercase tracking-tight">Sync <span class="text-[#F3995D]">Control Comex</span></h2>
+                <p class="text-white/60 mt-2">Mapeo automático: Usuario, Monto, Fechas y Contenedores Duplicados.</p>
             </div>
 
-            <!-- Destino: Plantilla Comex -->
-            <div id="drop-comex" class="drop-zone p-10 rounded-3xl bg-white flex flex-col items-center text-center cursor-pointer hover:shadow-xl transition-all">
-                <div class="w-14 h-14 bg-green-50 text-green-500 rounded-2xl flex items-center justify-center mb-4">
-                    <i class="fa-solid fa-file-excel text-2xl"></i>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div id="drop-selaski" class="glass-card p-8 rounded-2xl drop-zone text-center cursor-pointer">
+                    <i class="fa-solid fa-file-import text-3xl text-teal-400 mb-4"></i>
+                    <h3 class="font-bold">Informe Selaski</h3>
+                    <p class="text-[10px] text-white/40 uppercase mb-4">(Fuente: Embarques)</p>
+                    <div id="status-selaski" class="text-[10px] bg-white/5 py-2 px-4 rounded-full border border-white/10">Seleccionar Archivo</div>
+                    <input type="file" id="input-selaski" class="hidden" accept=".xlsx, .xls">
                 </div>
-                <h3 class="font-bold text-slate-800">2. Plantilla Comex</h3>
-                <p class="text-xs text-slate-500 mb-2">(Destino con Fórmulas)</p>
-                <p id="label-comex" class="text-[10px] bg-slate-100 px-3 py-1 rounded-full text-slate-600 font-bold uppercase">Esperando Archivo Destino</p>
-                <input type="file" id="input-comex" class="hidden" accept=".xlsx, .xls">
+
+                <div id="drop-comex" class="glass-card p-8 rounded-2xl drop-zone text-center cursor-pointer">
+                    <i class="fa-solid fa-file-export text-3xl text-orange-400 mb-4"></i>
+                    <h3 class="font-bold">Plantilla Comex</h3>
+                    <p class="text-[10px] text-white/40 uppercase mb-4">(Destino: Fruteec)</p>
+                    <div id="status-comex" class="text-[10px] bg-white/5 py-2 px-4 rounded-full border border-white/10">Seleccionar Archivo</div>
+                    <input type="file" id="input-comex" class="hidden" accept=".xlsx, .xls">
+                </div>
             </div>
-        </div>
 
-        <!-- Acción -->
-        <div class="flex flex-col items-center space-y-4">
-            <button id="btn-process" disabled class="group relative px-12 py-4 bg-slate-300 text-white rounded-2xl font-bold text-sm transition-all flex items-center space-x-3 overflow-hidden">
-                <span class="relative z-10 uppercase tracking-wider">Sincronizar Datos</span>
-                <i class="fa-solid fa-bolt relative z-10 group-hover:scale-125 transition-transform"></i>
-            </button>
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center">
-                El cruce de información se realiza mediante el N° de Exportación
-            </p>
-        </div>
+            <div class="max-w-md mx-auto">
+                <button id="btn-process" disabled class="btn-glow w-full py-4 rounded-xl font-bold uppercase tracking-widest text-sm mb-6 disabled:opacity-30">
+                    Sincronizar Datos
+                </button>
 
-        <!-- Resultados -->
-        <div id="result-panel" class="hidden mt-8 animate-in slide-in-from-bottom-4 duration-500">
-            <div class="bg-white rounded-3xl shadow-2xl shadow-blue-100 border border-blue-50 overflow-hidden">
-                <div class="bg-blue-600 p-4 text-white flex justify-between items-center">
-                    <span class="text-xs font-bold uppercase tracking-widest">Sincronización Exitosa</span>
-                    <i class="fa-solid fa-check-double"></i>
-                </div>
-                <div class="p-8">
-                    <div class="grid grid-cols-1 gap-8 mb-8">
-                        <div class="text-center">
-                            <p class="text-[10px] text-slate-400 font-black uppercase mb-1">Coincidencias Encontradas y Actualizadas</p>
-                            <p id="count-matches" class="text-5xl font-black text-slate-800">0</p>
-                        </div>
+                <div id="progress-container" class="hidden space-y-2">
+                    <div class="flex justify-between text-[10px] font-bold text-teal-400 uppercase">
+                        <span id="progress-label">Procesando...</span>
+                        <span id="progress-text">0%</span>
                     </div>
-                    <button id="btn-download" class="w-full py-5 bg-slate-900 hover:bg-black text-white rounded-2xl font-black shadow-xl transition-all flex items-center justify-center space-x-4">
-                        <i class="fa-solid fa-download text-lg"></i>
-                        <span class="uppercase tracking-widest text-sm">Descargar Plantilla Actualizada</span>
+                    <div class="progress-bar-container">
+                        <div id="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="result-panel" class="hidden mt-8 animate-bounce-short">
+                <div class="glass-card rounded-3xl p-8 border-teal-500/30 text-center">
+                    <h4 class="text-xl font-bold mb-4 uppercase">¡Sincronización Exitosa!</h4>
+                    <p class="text-sm text-white/60 mb-6">Se actualizaron <span id="count-matches" class="text-white font-black text-lg">0</span> registros mapeados correctamente.</p>
+                    <button id="btn-download" class="btn-download-final w-full py-5 rounded-xl text-sm uppercase tracking-widest">
+                        <i class="fa-solid fa-file-arrow-down mr-2"></i>Descargar Reporte Final
                     </button>
                 </div>
             </div>
         </div>
     </main>
 
-    <footer class="p-8 text-center mt-auto">
-        <p class="text-[10px] text-slate-300 font-bold uppercase tracking-[0.3em]">Fruteec S.A. &middot; Exportación de Calidad</p>
-    </footer>
-
-    <!-- Notificaciones -->
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 transform translate-y-32 transition-transform duration-500 bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 z-50">
-        <div class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-        <span id="toast-msg" class="text-xs font-bold uppercase tracking-wider">Mensaje</span>
-    </div>
-
     <script>
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('es-CL'); }, 1000);
+
         let selaskiData = null;
         let comexWorkbook = null;
 
         const inputSelaski = document.getElementById('input-selaski');
         const inputComex = document.getElementById('input-comex');
-        const dropSelaski = document.getElementById('drop-selaski');
-        const dropComex = document.getElementById('drop-comex');
         const btnProcess = document.getElementById('btn-process');
         const resultPanel = document.getElementById('result-panel');
         const btnDownload = document.getElementById('btn-download');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
 
-        dropSelaski.onclick = () => inputSelaski.click();
-        dropComex.onclick = () => inputComex.click();
+        document.getElementById('drop-selaski').onclick = () => inputSelaski.click();
+        document.getElementById('drop-comex').onclick = () => inputComex.click();
 
         inputSelaski.onchange = (e) => handleFile(e.target.files[0], 'selaski');
         inputComex.onchange = (e) => handleFile(e.target.files[0], 'comex');
-
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            document.getElementById('toast-msg').innerText = msg;
-            t.classList.remove('translate-y-32');
-            setTimeout(() => t.classList.add('translate-y-32'), 4000);
-        }
-
-        function formatDateString(val) {
-            if (!val) return "";
-            let date;
-            if (val instanceof Date) {
-                date = val;
-            } else if (typeof val === 'number' && val > 30000) {
-                date = XLSX.SSF.parse_date_code(val);
-                date = new Date(date.y, date.m - 1, date.d);
-            } else {
-                date = new Date(val);
-            }
-            if (isNaN(date.getTime())) return val;
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}-${month}-${year}`;
-        }
 
         async function handleFile(file, type) {
             if (!file) return;
             const reader = new FileReader();
             reader.onload = (e) => {
                 const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { 
-                    type: 'array', 
-                    cellStyles: true, 
-                    cellFormulas: true, 
-                    cellDates: true,
-                    cellNF: true 
-                });
-
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                 if (type === 'selaski') {
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    selaskiData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-                    document.getElementById('label-selaski').innerHTML = `<i class="fa-solid fa-check mr-1"></i> ${file.name}`;
-                    document.getElementById('label-selaski').classList.replace('bg-slate-100', 'bg-blue-600');
-                    document.getElementById('label-selaski').classList.replace('text-slate-600', 'text-white');
+                    selaskiData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
+                    document.getElementById('status-selaski').innerText = "CARGADO: " + file.name;
                 } else {
                     comexWorkbook = workbook;
-                    document.getElementById('label-comex').innerHTML = `<i class="fa-solid fa-check mr-1"></i> ${file.name}`;
-                    document.getElementById('label-comex').classList.replace('bg-slate-100', 'bg-green-600');
-                    document.getElementById('label-comex').classList.replace('text-slate-600', 'text-white');
+                    document.getElementById('status-comex').innerText = "CARGADO: " + file.name;
                 }
-                if (selaskiData && comexWorkbook) {
-                    btnProcess.disabled = false;
-                    btnProcess.classList.replace('bg-slate-300', 'bg-blue-600');
-                    btnProcess.classList.add('hover:bg-blue-700', 'shadow-blue-200', 'shadow-2xl');
-                }
+                if (selaskiData && comexWorkbook) btnProcess.disabled = false;
             };
             reader.readAsArrayBuffer(file);
         }
 
-        btnProcess.onclick = () => {
-            btnProcess.innerHTML = '<i class="fa-solid fa-cog fa-spin"></i> <span>SINCRONIZANDO...</span>';
-            setTimeout(processLogic, 500);
-        };
-
-        function processLogic() {
-            try {
-                const comexSheet = comexWorkbook.Sheets[comexWorkbook.SheetNames[0]];
-                
-                const mapping = {
-                    "Usuario": ["Usuario"],
-                    "Nº Embarque": ["N° Exportacion"], 
-                    "Contenedores": ["N° Contenedor", "N° Contenedor_1"], 
-                    "Puerto Origen": ["Puerto Origen"],
-                    "Pais Destino": ["Pais Destino"],
-                    "Tipo Contenedor": ["Tipo Contenedor"],
-                    "Carrier / Aerolínea": ["Naviera"],
-                    "Nave Origen": ["Nave"],
-                    "Booking": ["Booking/Reserva"],
-                    "Bill of Lading": ["B/L"],
-                    "DUS": ["DUS"],
-                    "ETD": ["Fecha ETD"],
-                    "ETA": ["Fecha ETA"],
-                    "N° Factura Exportación": ["N° Factura"],
-                    "Fecha Factura Exportación": ["Fecha Factura"],
-                    "Valor Factura Exportación": ["Monto Factura"],
-                    "Cantidad Despachada": ["Cantidad Despachada"],
-                    "Peso Bruto Total": ["KG Brutos Comex"]
-                };
-
-                const range = XLSX.utils.decode_range(comexSheet['!ref']);
-                let matches = 0;
-
-                const headerMap = {}; 
-                for (let C = range.s.c; C <= range.e.c; ++C) {
-                    const addr = XLSX.utils.encode_cell({ r: range.s.r, c: C });
-                    const cell = comexSheet[addr];
-                    if (cell && cell.v) {
-                        const headName = cell.v.toString().trim();
-                        if (!headerMap[headName]) headerMap[headName] = [];
-                        headerMap[headName].push(C);
-                    }
-                }
-
-                const keyColIndices = headerMap["N° Exportacion"];
-                if (!keyColIndices) throw new Error("No se encontró columna 'N° Exportacion'");
-                const keyColIdx = keyColIndices[0];
-
-                for (let R = range.s.r + 1; R <= range.e.r; ++R) {
-                    const keyAddr = XLSX.utils.encode_cell({ r: R, c: keyColIdx });
-                    const keyCell = comexSheet[keyAddr];
-                    
-                    if (!keyCell || !keyCell.v) continue;
-
-                    const idComex = String(keyCell.v).trim();
-                    const sourceMatch = selaskiData.find(s => String(s["Nº Embarque"] || "").trim() === idComex);
-
-                    if (sourceMatch) {
-                        matches++;
-                        Object.entries(mapping).forEach(([srcColName, destColNames]) => {
-                            const val = sourceMatch[srcColName];
-                            if (val === undefined || val === "") return;
-
-                            const isDateCol = srcColName.toLowerCase().includes("fecha") || 
-                                              srcColName === "ETD" || 
-                                              srcColName === "ETA";
-                            
-                            const finalValue = isDateCol ? formatDateString(val) : val;
-
-                            destColNames.forEach(destName => {
-                                const targetIndices = headerMap[destName];
-                                if (targetIndices) {
-                                    targetIndices.forEach(colIdx => {
-                                        const targetAddr = XLSX.utils.encode_cell({ r: R, c: colIdx });
-                                        if (comexSheet[targetAddr] && comexSheet[targetAddr].f) return;
-                                        if (!comexSheet[targetAddr]) comexSheet[targetAddr] = { t: 's', v: '' };
-                                        
-                                        if (typeof finalValue === 'number' && !isDateCol) {
-                                            comexSheet[targetAddr].t = 'n';
-                                            comexSheet[targetAddr].v = finalValue;
-                                        } else {
-                                            comexSheet[targetAddr].t = 's';
-                                            comexSheet[targetAddr].v = String(finalValue);
-                                        }
-                                    });
-                                }
-                            });
-                        });
-                    }
-                }
-
-                document.getElementById('count-matches').innerText = matches;
-                resultPanel.classList.remove('hidden');
-                btnProcess.innerHTML = '<span>Sincronizar Nuevamente</span> <i class="fa-solid fa-rotate"></i>';
-                showToast("Sincronización finalizada");
-
-            } catch (err) {
-                console.error(err);
-                showToast("Error: " + err.message);
-                btnProcess.innerHTML = '<span>Error en proceso</span>';
+        function formatDateShort(val) {
+            if (!val) return "";
+            let d;
+            if (val instanceof Date) d = val;
+            else if (typeof val === 'number') {
+                const parsed = XLSX.SSF.parse_date_code(val);
+                d = new Date(parsed.y, parsed.m - 1, parsed.d);
+            } else {
+                d = new Date(val);
             }
+            if (isNaN(d.getTime())) return val;
+            return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
         }
 
-        btnDownload.onclick = () => {
-            XLSX.writeFile(comexWorkbook, "Plantilla_Comex_Actualizada.xlsx", { 
-                bookType: 'xlsx', 
-                cellStyles: true,
-                cellFormulas: true 
-            });
+        btnProcess.onclick = async () => {
+            btnProcess.disabled = true;
+            document.getElementById('progress-container').classList.remove('hidden');
+            resultPanel.classList.add('hidden');
+            
+            const sheet = comexWorkbook.Sheets[comexWorkbook.SheetNames[0]];
+            const range = XLSX.utils.decode_range(sheet['!ref']);
+            
+            // MAPEO REVISADO: Se agregan Usuario y Tipo Flete
+            const mapping = {
+                "Usuario": ["Usuario"], // REINSTALADO
+                "Nº Embarque": ["N° Exportacion"],
+                "Contenedores": ["N° Contenedor"],
+                "Detalle Embarque": ["Tipo Refrigeracion"],
+                "Condicion Flete": ["Tipo flete"], // REINSTALADO
+                "Pickup": ["Dia de carga"],
+                "ETD": ["Fecha ETD"],
+                "ETA": ["Fecha ETA"],
+                "Stacking Físico (desde)": ["Fecha Inicio Stacking"],
+                "Stacking Físico (hasta)": ["Fecha término Stacking"],
+                "Cut Off Documental": ["Corte Documental"],
+                "Valor Factura Exportación": ["Monto Factura", "MONTO FACTURA USD"],
+                "Nro Factura Exportación": ["N° Factura"],
+                "Fecha Factura Exportación": ["Fecha Factura"],
+                "Peso Bruto Total": ["KG Brutos Comex"],
+                "Puerto Origen": ["Puerto Origen"],
+                "País Destino": ["Pais Destino"],
+                "Carrier / Aerolínea": ["Naviera"],
+                "Nave Origen": ["Nave"],
+                "Puerto Destino": ["POD"],
+                "Booking": ["Booking/Reserva"],
+                "Bill of Lading": ["B/L"],
+                "DUS": ["DUS"]
+            };
+
+            const headerMap = {};
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const cell = sheet[XLSX.utils.encode_cell({r: range.s.r, c: C})];
+                if (cell && cell.v) {
+                    const name = cell.v.toString().trim();
+                    if (!headerMap[name]) headerMap[name] = [];
+                    headerMap[name].push(C);
+                }
+            }
+
+            const keyIdxs = headerMap["N° Exportacion"];
+            if (!keyIdxs) { alert("No se encontró columna N° Exportacion"); return; }
+            const keyCol = keyIdxs[0];
+
+            let count = 0;
+            const total = range.e.r - range.s.r;
+
+            for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+                if (R % 10 === 0) {
+                    const p = Math.round(((R - range.s.r) / total) * 100);
+                    progressFill.style.width = p + "%";
+                    progressText.innerText = p + "%";
+                    await new Promise(r => setTimeout(r, 1));
+                }
+
+                const cellKey = sheet[XLSX.utils.encode_cell({r: R, c: keyCol})];
+                if (!cellKey || !cellKey.v) continue;
+
+                const id = String(cellKey.v).trim();
+                const source = selaskiData.find(s => String(s["Nº Embarque"] || "").trim() === id);
+
+                if (source) {
+                    count++;
+                    Object.entries(mapping).forEach(([srcK, destHeads]) => {
+                        let val = source[srcK];
+                        if (val === undefined || val === null) return;
+
+                        const k = srcK.toLowerCase();
+                        // Formato de fecha para campos de tiempo
+                        if (k.includes("etd") || k.includes("eta") || k.includes("fecha") || k.includes("pickup") || k.includes("stacking") || k.includes("cut off")) {
+                            val = formatDateShort(val);
+                        }
+
+                        destHeads.forEach(hName => {
+                            const cols = headerMap[hName];
+                            if (cols) {
+                                cols.forEach(cIdx => {
+                                    const addr = XLSX.utils.encode_cell({r: R, c: cIdx});
+                                    sheet[addr] = { 
+                                        t: typeof val === 'number' ? 'n' : 's', 
+                                        v: val 
+                                    };
+                                });
+                            }
+                        });
+                    });
+                }
+            }
+
+            progressFill.style.width = "100%";
+            progressText.innerText = "100%";
+            document.getElementById('count-matches').innerText = count;
+            resultPanel.classList.remove('hidden');
+            btnProcess.disabled = false;
         };
 
+        btnDownload.onclick = () => {
+            XLSX.writeFile(comexWorkbook, "Control_Comex_Actualizado_v2.2.xlsx");
+        };
     </script>
 </body>
 </html>
