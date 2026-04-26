@@ -6,6 +6,7 @@
     <title>Fruteec x Selaski - Sync Shipments</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
@@ -49,7 +50,6 @@
             transform: translateY(-2px);
         }
 
-        /* Botón en estado desactivado (visible pero neutro) */
         #btn-process {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -57,7 +57,6 @@
             cursor: not-allowed;
         }
 
-        /* Efecto Glowing para el botón cuando está ACTIVO */
         @keyframes glowing {
             0% { box-shadow: 0 0 5px rgba(243, 153, 93, 0.4); transform: scale(1); }
             50% { box-shadow: 0 0 25px rgba(243, 153, 93, 0.7); transform: scale(1.01); }
@@ -74,7 +73,6 @@
             opacity: 1 !important;
         }
 
-        /* Barra de progreso fluida */
         .progress-bar-container {
             width: 100%;
             height: 12px;
@@ -141,7 +139,7 @@
                 <h2 class="text-4xl md:text-5xl font-black text-white mb-2 tracking-tighter uppercase">
                     Sync <span class="text-[#F3995D]">Shipments</span>
                 </h2>
-                <p class="text-white/50 text-sm font-medium italic">Correlacionando ID Comex: Selaski ⮕ Sharepoint</p>
+                <p class="text-white/50 text-sm font-medium italic">Correlacionando ID Comex: Selaski ⮕ Sharepoint (Manteniendo Formato)</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
@@ -160,14 +158,13 @@
                         <i class="fa-solid fa-file-excel text-3xl text-[#F3995D]"></i>
                     </div>
                     <h3 class="text-xl font-bold mb-1 text-white/90">Destino Sharepoint</h3>
-                    <p class="text-[10px] text-white/30 uppercase tracking-widest mb-6">Planilla Maestra</p>
+                    <p class="text-[10px] text-white/30 uppercase tracking-widest mb-6">Planilla Maestra (Conserva Colores)</p>
                     <div id="status-comex" class="inline-block px-6 py-2 rounded-full border border-white/10 text-[10px] font-bold uppercase tracking-widest bg-white/5">Cargar Archivo</div>
                     <input type="file" id="input-comex" class="hidden" accept=".xlsx, .xls, .csv">
                 </div>
             </div>
 
             <div class="max-w-md mx-auto w-full">
-                <!-- Botón siempre visible con bordes definidos -->
                 <button id="btn-process" disabled class="w-full py-5 rounded-2xl uppercase tracking-[0.2em] text-sm mb-6 shadow-xl transition-all duration-500">
                     <i class="fa-solid fa-magnifying-glass-chart mr-2"></i> Ejecutar Auditoría
                 </button>
@@ -196,9 +193,7 @@
                         </div>
                     </div>
 
-                    <div id="diff-log" class="diff-log mb-8">
-                        <!-- Diferencias se insertan aquí -->
-                    </div>
+                    <div id="diff-log" class="diff-log mb-8"></div>
                     
                     <button id="btn-download" class="w-full bg-white text-slate-900 py-6 rounded-2xl uppercase font-black tracking-[0.2em] text-sm transition-all hover:bg-teal-400 hover:text-white hover:shadow-2xl">
                         <i class="fa-solid fa-download mr-2"></i> Descargar Excel Actualizado
@@ -212,7 +207,7 @@
         setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('es-CL'); }, 1000);
 
         let selaskiData = null;
-        let comexWorkbook = null;
+        let comexBuffer = null; 
 
         const inputSelaski = document.getElementById('input-selaski');
         const inputComex = document.getElementById('input-comex');
@@ -227,7 +222,7 @@
         document.getElementById('drop-comex').onclick = () => inputComex.click();
 
         function updateBtnState() {
-            if (selaskiData && comexWorkbook) {
+            if (selaskiData && comexBuffer) {
                 btnProcess.disabled = false;
                 btnProcess.classList.add('btn-glow-active');
             } else {
@@ -236,36 +231,49 @@
             }
         }
 
-        function handleFile(file, type) {
+        inputSelaski.onchange = (e) => {
+            const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = (e) => {
-                const data = new Uint8Array(e.target.result);
+            reader.onload = (ev) => {
+                const data = new Uint8Array(ev.target.result);
                 const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                if (type === 'selaski') {
-                    selaskiData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
-                    document.getElementById('status-selaski').innerText = "ARCHIVO CARGADO";
-                    document.getElementById('status-selaski').classList.replace('bg-white/5', 'bg-teal-500/20');
-                } else {
-                    comexWorkbook = workbook;
-                    document.getElementById('status-comex').innerText = "PLANTILLA CARGADA";
-                    document.getElementById('status-comex').classList.replace('bg-white/5', 'bg-orange-500/20');
-                }
+                selaskiData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
+                document.getElementById('status-selaski').innerText = "ARCHIVO CARGADO";
+                document.getElementById('status-selaski').classList.replace('bg-white/5', 'bg-teal-500/20');
                 updateBtnState();
             };
             reader.readAsArrayBuffer(file);
-        }
+        };
 
-        inputSelaski.onchange = (e) => handleFile(e.target.files[0], 'selaski');
-        inputComex.onchange = (e) => handleFile(e.target.files[0], 'comex');
+        inputComex.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                comexBuffer = ev.target.result;
+                document.getElementById('status-comex').innerText = "PLANTILLA CARGADA";
+                document.getElementById('status-comex').classList.replace('bg-white/5', 'bg-orange-500/20');
+                updateBtnState();
+            };
+            reader.readAsArrayBuffer(file);
+        };
 
-        function formatVal(val) {
-            if (val === null || val === undefined) return "";
+        // Función para formatear fechas solo en el Log visual
+        function formatLogVal(val) {
+            if (val === null || val === undefined || val === "") return "(vacío)";
             if (val instanceof Date) {
-                return `${String(val.getDate()).padStart(2,'0')}-${String(val.getMonth()+1).padStart(2,'0')}-${val.getFullYear()}`;
+                if (isNaN(val.getTime())) return "(vacío)";
+                return val.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            }
+            if (typeof val === 'number' && val > 30000 && val < 60000) {
+                const date = new Date(Math.round((val - 25569) * 864e5));
+                return date.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
             }
             return String(val).trim();
         }
+
+        let finalWorkbook = null;
 
         btnProcess.onclick = async () => {
             btnProcess.disabled = true;
@@ -273,10 +281,11 @@
             document.getElementById('progress-container').classList.remove('hidden');
             resultPanel.classList.add('hidden');
             diffLogContainer.innerHTML = "";
-            
-            const sheet = comexWorkbook.Sheets[comexWorkbook.SheetNames[0]];
-            const range = XLSX.utils.decode_range(sheet['!ref']);
-            
+
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.load(comexBuffer);
+            const sheet = workbook.worksheets[0];
+
             const mapping = {
                 "Nº Embarque": ["ID Comex"],
                 "Puerto Origen": ["Puerto Origen"],
@@ -288,41 +297,41 @@
                 "ETA": ["Fecha ETA"]
             };
 
+            const headerRow = sheet.getRow(1);
             const headerMap = {};
-            for (let C = range.s.c; C <= range.e.c; ++C) {
-                const cell = sheet[XLSX.utils.encode_cell({r: range.s.r, c: C})];
-                if (cell && cell.v) {
-                    const h = cell.v.toString().trim();
+            headerRow.eachCell((cell, colNumber) => {
+                if (cell.value) {
+                    const h = cell.value.toString().trim();
                     if (!headerMap[h]) headerMap[h] = [];
-                    headerMap[h].push(C);
+                    headerMap[h].push(colNumber);
                 }
-            }
+            });
 
             const idComexCols = headerMap["ID Comex"];
             const nExportCols = headerMap["N° Exportacion"];
             const keyColIdx = (idComexCols && idComexCols.length > 0) ? idComexCols[0] : (nExportCols ? nExportCols[0] : null);
 
-            if (keyColIdx === null) {
-                alert("Error crítico: No se detectó 'ID Comex' en la planilla de destino.");
+            if (!keyColIdx) {
+                alert("Error: No se encontró la columna 'ID Comex' o 'N° Exportacion' en el destino.");
                 return;
             }
 
             let changeCount = 0;
-            const totalRows = range.e.r - range.s.r;
+            const totalRows = sheet.rowCount;
 
-            for (let R = range.s.r + 1; R <= range.e.r; ++R) {
-                if (R % 15 === 0 || R === range.e.r) {
-                    const p = Math.round(((R - range.s.r) / totalRows) * 100);
+            for (let i = 2; i <= totalRows; i++) {
+                if (i % 30 === 0 || i === totalRows) {
+                    const p = Math.round((i / totalRows) * 100);
                     progressFill.style.width = p + "%";
                     progressText.innerText = p + "%";
-                    await new Promise(r => setTimeout(r, 10));
+                    await new Promise(r => setTimeout(r, 1));
                 }
 
-                const cellAddr = XLSX.utils.encode_cell({r: R, c: keyColIdx});
-                const cellObj = sheet[cellAddr];
-                if (!cellObj || !cellObj.v) continue;
+                const row = sheet.getRow(i);
+                const rowIdCell = row.getCell(keyColIdx);
+                if (!rowIdCell.value) continue;
 
-                const rowId = String(cellObj.v).trim();
+                const rowId = rowIdCell.value.toString().trim();
                 const match = selaskiData.find(s => String(s["Nº Embarque"] || "").trim() === rowId);
 
                 if (match) {
@@ -333,22 +342,21 @@
                         let newValue = match[srcKey];
                         if (newValue === undefined) return;
 
-                        const lowerKey = srcKey.toLowerCase();
-                        if (lowerKey === "etd" || lowerKey === "eta") newValue = formatVal(newValue);
-
                         destHeaders.forEach(headerName => {
                             const targetCols = headerMap[headerName];
                             if (targetCols) {
                                 targetCols.forEach(colIdx => {
-                                    const targetAddr = XLSX.utils.encode_cell({r: R, c: colIdx});
-                                    const currentCell = sheet[targetAddr];
-                                    const oldVal = currentCell ? formatVal(currentCell.v) : "(vacío)";
-                                    const newValStr = formatVal(newValue);
+                                    const cell = row.getCell(colIdx);
+                                    
+                                    // Comparamos valores raw pero logueamos formateado
+                                    const rawOld = cell.value;
+                                    const oldStr = formatLogVal(rawOld);
+                                    const newStr = formatLogVal(newValue);
 
-                                    if (oldVal !== newValStr) {
+                                    if (oldStr !== newStr) {
                                         hasChanges = true;
-                                        logEntries.push(`<span class="text-white/40">${headerName}:</span> <span class="text-red-400/80">${oldVal}</span> ⮕ <span class="text-teal-400 font-bold">${newValStr}</span>`);
-                                        sheet[targetAddr] = { t: typeof newValue === 'number' ? 'n' : 's', v: newValue };
+                                        logEntries.push(`<span class="text-white/40">${headerName}:</span> <span class="text-red-400/80">${oldStr}</span> ⮕ <span class="text-teal-400 font-bold">${newStr}</span>`);
+                                        cell.value = newValue;
                                     }
                                 });
                             }
@@ -366,16 +374,24 @@
             }
 
             if (changeCount === 0) {
-                diffLogContainer.innerHTML = `<div class="text-center py-12 text-white/20 italic text-[10px] tracking-widest">Todo está sincronizado. No hay cambios pendientes.</div>`;
+                diffLogContainer.innerHTML = `<div class="text-center py-12 text-white/20 italic text-[10px] tracking-widest">Sin cambios detectados. Los formatos se mantienen intactos.</div>`;
             }
 
+            finalWorkbook = workbook;
             document.getElementById('count-matches').innerText = changeCount;
             resultPanel.classList.remove('hidden');
             updateBtnState();
         };
 
-        btnDownload.onclick = () => {
-            XLSX.writeFile(comexWorkbook, "Control_Shipments_Actualizado.xlsx");
+        btnDownload.onclick = async () => {
+            const buffer = await finalWorkbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "Sync_Shipments_Auditado.xlsx";
+            a.click();
+            URL.revokeObjectURL(url);
         };
     </script>
 </body>
