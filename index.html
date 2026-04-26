@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fruteec x Selaski - Smart Comex</title>
+    <title>Fruteec x Selaski - Sync Shipments</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
         
         :root {
             --primary: #1F335E;
@@ -24,7 +24,6 @@
                 radial-gradient(circle at 100% 100%, rgba(30, 158, 166, 0.2) 0%, transparent 50%);
             color: #ffffff;
             min-height: 100vh;
-            margin: 0;
         }
 
         .tech-grid {
@@ -47,68 +46,92 @@
         .drop-zone:hover {
             border-color: var(--teal);
             background: rgba(30, 158, 166, 0.05);
-        }
-
-        .btn-glow {
-            background: linear-gradient(135deg, var(--accent) 0%, #d47a3d 100%);
-            transition: all 0.3s ease;
-            color: white;
-            font-weight: 900;
-        }
-
-        .btn-glow:hover:not(:disabled) {
-            box-shadow: 0 0 25px rgba(243, 153, 93, 0.5);
             transform: translateY(-2px);
         }
 
-        .btn-download-final {
-            background-color: #ffffff !important;
-            color: #1F335E !important;
-            font-weight: 900;
-            border: 2px solid #ffffff;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-        
-        .btn-download-final:hover {
-            background-color: var(--accent) !important;
-            color: #ffffff !important;
-            border-color: var(--accent);
+        /* Botón en estado desactivado (visible pero neutro) */
+        #btn-process {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.3);
+            cursor: not-allowed;
         }
 
+        /* Efecto Glowing para el botón cuando está ACTIVO */
+        @keyframes glowing {
+            0% { box-shadow: 0 0 5px rgba(243, 153, 93, 0.4); transform: scale(1); }
+            50% { box-shadow: 0 0 25px rgba(243, 153, 93, 0.7); transform: scale(1.01); }
+            100% { box-shadow: 0 0 5px rgba(243, 153, 93, 0.4); transform: scale(1); }
+        }
+
+        .btn-glow-active {
+            background: linear-gradient(135deg, var(--accent) 0%, #d47a3d 100%) !important;
+            animation: glowing 2s infinite ease-in-out;
+            color: white !important;
+            font-weight: 900;
+            border: none !important;
+            cursor: pointer !important;
+            opacity: 1 !important;
+        }
+
+        /* Barra de progreso fluida */
         .progress-bar-container {
             width: 100%;
             height: 12px;
             background: rgba(255,255,255,0.1);
             border-radius: 20px;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
         #progress-fill {
             width: 0%;
             height: 100%;
-            background: linear-gradient(90deg, var(--teal), var(--accent));
-            transition: width 0.3s ease;
+            background: linear-gradient(90deg, var(--teal), var(--accent), var(--teal));
+            background-size: 200% 100%;
+            animation: moveGradient 2s linear infinite;
+            transition: width 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            border-radius: 20px;
         }
 
-        .logo-container img {
-            max-height: 45px;
-            width: auto;
-            filter: drop-shadow(0 0 8px rgba(255,255,255,0.2));
+        @keyframes moveGradient {
+            0% { background-position: 100% 0%; }
+            100% { background-position: -100% 0%; }
+        }
+
+        .diff-log {
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            font-family: monospace;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .diff-item {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 8px 0;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
         }
     </style>
 </head>
 <body class="tech-grid flex flex-col">
 
     <nav class="glass-card sticky top-0 z-50 px-8 py-4 flex justify-between items-center border-b border-white/10">
-        <div class="flex items-center space-x-8 logo-container">
-            <img src="Logo nuevo.png" alt="Logo Fruteec" onerror="this.style.display='none'">
+        <div class="flex items-center space-x-8">
+            <img src="Logo nuevo.png" alt="Fruteec" class="h-10" onerror="this.style.display='none'">
             <div class="h-8 w-[1px] bg-white/20"></div>
-            <img src="Logo Disminuido2.png" alt="Logo Selaski" onerror="this.style.display='none'">
+            <img src="Logo Disminuido2.png" alt="Selaski" class="h-10" onerror="this.style.display='none'">
         </div>
         <div class="text-right">
             <p id="clock" class="text-xs font-mono text-teal-400">00:00:00</p>
-            <p class="text-[9px] font-bold uppercase tracking-[0.3em]">Smart Comex System</p>
         </div>
     </nav>
 
@@ -116,45 +139,42 @@
         <div class="max-w-5xl w-full">
             <div class="text-center mb-10">
                 <h2 class="text-4xl md:text-5xl font-black text-white mb-2 tracking-tighter uppercase">
-                    Sync <span class="text-[#F3995D]">Intelligence</span>
+                    Sync <span class="text-[#F3995D]">Shipments</span>
                 </h2>
-                <p class="text-white/50 text-sm font-medium">Mapeo optimizado de embarques y logística global.</p>
+                <p class="text-white/50 text-sm font-medium italic">Correlacionando ID Comex: Selaski ⮕ Sharepoint</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
                 <div id="drop-selaski" class="glass-card p-10 rounded-3xl drop-zone text-center cursor-pointer group">
                     <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-teal-500/20 transition-all">
-                        <i class="fa-solid fa-server text-3xl text-teal-400"></i>
+                        <i class="fa-solid fa-file-csv text-3xl text-teal-400"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-1">Informe Selaski</h3>
-                    <p class="text-[10px] text-white/30 uppercase tracking-widest mb-6">Fuente de Datos</p>
-                    <div id="status-selaski" class="inline-block px-6 py-2 rounded-full border border-white/10 text-[10px] font-bold uppercase tracking-widest bg-white/5">
-                        Cargar Archivo
-                    </div>
-                    <input type="file" id="input-selaski" class="hidden" accept=".xlsx, .xls">
+                    <h3 class="text-xl font-bold mb-1 text-white/90">Fuente Selaski</h3>
+                    <p class="text-[10px] text-white/30 uppercase tracking-widest mb-6">Archivo con cambios</p>
+                    <div id="status-selaski" class="inline-block px-6 py-2 rounded-full border border-white/10 text-[10px] font-bold uppercase tracking-widest bg-white/5">Cargar Archivo</div>
+                    <input type="file" id="input-selaski" class="hidden" accept=".xlsx, .xls, .csv">
                 </div>
 
                 <div id="drop-comex" class="glass-card p-10 rounded-3xl drop-zone text-center cursor-pointer group">
                     <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-[#F3995D]/20 transition-all">
                         <i class="fa-solid fa-file-excel text-3xl text-[#F3995D]"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-1">Plantilla Comex</h3>
-                    <p class="text-[10px] text-white/30 uppercase tracking-widest mb-6">Archivo Destino</p>
-                    <div id="status-comex" class="inline-block px-6 py-2 rounded-full border border-white/10 text-[10px] font-bold uppercase tracking-widest bg-white/5">
-                        Cargar Archivo
-                    </div>
-                    <input type="file" id="input-comex" class="hidden" accept=".xlsx, .xls">
+                    <h3 class="text-xl font-bold mb-1 text-white/90">Destino Sharepoint</h3>
+                    <p class="text-[10px] text-white/30 uppercase tracking-widest mb-6">Planilla Maestra</p>
+                    <div id="status-comex" class="inline-block px-6 py-2 rounded-full border border-white/10 text-[10px] font-bold uppercase tracking-widest bg-white/5">Cargar Archivo</div>
+                    <input type="file" id="input-comex" class="hidden" accept=".xlsx, .xls, .csv">
                 </div>
             </div>
 
             <div class="max-w-md mx-auto w-full">
-                <button id="btn-process" disabled class="btn-glow w-full py-5 rounded-2xl uppercase tracking-[0.2em] text-sm mb-6 disabled:opacity-20 shadow-xl">
-                    <i class="fa-solid fa-bolt-lightning mr-2"></i> Iniciar Sincronización
+                <!-- Botón siempre visible con bordes definidos -->
+                <button id="btn-process" disabled class="w-full py-5 rounded-2xl uppercase tracking-[0.2em] text-sm mb-6 shadow-xl transition-all duration-500">
+                    <i class="fa-solid fa-magnifying-glass-chart mr-2"></i> Ejecutar Auditoría
                 </button>
                 
                 <div id="progress-container" class="hidden space-y-3">
                     <div class="flex justify-between text-[10px] font-black text-teal-400 uppercase tracking-widest">
-                        <span id="progress-label">Procesando Mapeo...</span>
+                        <span id="progress-label">Analizando sincronización...</span>
                         <span id="progress-text">0%</span>
                     </div>
                     <div class="progress-bar-container">
@@ -163,22 +183,30 @@
                 </div>
             </div>
 
-            <div id="result-panel" class="hidden mt-10">
-                <div class="glass-card rounded-[2.5rem] p-10 border-teal-500/30 text-center">
-                    <h4 class="text-2xl font-black mb-2 uppercase tracking-tighter">Sincronización Completa</h4>
-                    <p class="text-white/60 text-sm mb-8 italic">Se han actualizado <span id="count-matches" class="text-white font-black text-xl not-italic">0</span> registros mapeados.</p>
+            <div id="result-panel" class="hidden mt-10 space-y-6">
+                <div class="glass-card rounded-[2.5rem] p-8 border-teal-500/30">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h4 class="text-xl font-black uppercase tracking-tight">Log de Diferencias</h4>
+                            <p class="text-white/40 text-xs mt-1">Comparación por ID Comex</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-3xl font-black text-[#F3995D]" id="count-matches">0</span>
+                            <p class="text-[10px] text-white/30 uppercase">Registros Actualizados</p>
+                        </div>
+                    </div>
+
+                    <div id="diff-log" class="diff-log mb-8">
+                        <!-- Diferencias se insertan aquí -->
+                    </div>
                     
-                    <button id="btn-download" class="btn-download-final w-full py-6 rounded-2xl uppercase tracking-[0.2em] text-sm transition-all">
-                        <i class="fa-solid fa-cloud-arrow-down mr-2"></i> Descargar Reporte Final
+                    <button id="btn-download" class="w-full bg-white text-slate-900 py-6 rounded-2xl uppercase font-black tracking-[0.2em] text-sm transition-all hover:bg-teal-400 hover:text-white hover:shadow-2xl">
+                        <i class="fa-solid fa-download mr-2"></i> Descargar Excel Actualizado
                     </button>
                 </div>
             </div>
         </div>
     </main>
-
-    <footer class="p-8 text-center border-t border-white/5">
-        <p class="text-[10px] text-white/10 font-bold uppercase tracking-[0.5em]">Logistics intelligence &bull; Fruteec S.A. & Selaski</p>
-    </footer>
 
     <script>
         setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('es-CL'); }, 1000);
@@ -193,15 +221,22 @@
         const btnDownload = document.getElementById('btn-download');
         const progressFill = document.getElementById('progress-fill');
         const progressText = document.getElementById('progress-text');
-        const progressLabel = document.getElementById('progress-label');
+        const diffLogContainer = document.getElementById('diff-log');
 
         document.getElementById('drop-selaski').onclick = () => inputSelaski.click();
         document.getElementById('drop-comex').onclick = () => inputComex.click();
 
-        inputSelaski.onchange = (e) => handleFile(e.target.files[0], 'selaski');
-        inputComex.onchange = (e) => handleFile(e.target.files[0], 'comex');
+        function updateBtnState() {
+            if (selaskiData && comexWorkbook) {
+                btnProcess.disabled = false;
+                btnProcess.classList.add('btn-glow-active');
+            } else {
+                btnProcess.disabled = true;
+                btnProcess.classList.remove('btn-glow-active');
+            }
+        }
 
-        async function handleFile(file, type) {
+        function handleFile(file, type) {
             if (!file) return;
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -209,64 +244,48 @@
                 const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                 if (type === 'selaski') {
                     selaskiData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
-                    document.getElementById('status-selaski').innerText = "LISTO: " + file.name.substring(0,10) + "...";
+                    document.getElementById('status-selaski').innerText = "ARCHIVO CARGADO";
+                    document.getElementById('status-selaski').classList.replace('bg-white/5', 'bg-teal-500/20');
                 } else {
                     comexWorkbook = workbook;
-                    document.getElementById('status-comex').innerText = "LISTO: " + file.name.substring(0,10) + "...";
+                    document.getElementById('status-comex').innerText = "PLANTILLA CARGADA";
+                    document.getElementById('status-comex').classList.replace('bg-white/5', 'bg-orange-500/20');
                 }
-                if (selaskiData && comexWorkbook) btnProcess.disabled = false;
+                updateBtnState();
             };
             reader.readAsArrayBuffer(file);
         }
 
-        function formatDate(val) {
-            if (!val) return "";
-            let d;
-            if (val instanceof Date) d = val;
-            else if (typeof val === 'number') {
-                const p = XLSX.SSF.parse_date_code(val);
-                d = new Date(p.y, p.m - 1, p.d);
-            } else { d = new Date(val); }
-            if (isNaN(d.getTime())) return val;
-            return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
+        inputSelaski.onchange = (e) => handleFile(e.target.files[0], 'selaski');
+        inputComex.onchange = (e) => handleFile(e.target.files[0], 'comex');
+
+        function formatVal(val) {
+            if (val === null || val === undefined) return "";
+            if (val instanceof Date) {
+                return `${String(val.getDate()).padStart(2,'0')}-${String(val.getMonth()+1).padStart(2,'0')}-${val.getFullYear()}`;
+            }
+            return String(val).trim();
         }
 
         btnProcess.onclick = async () => {
             btnProcess.disabled = true;
+            btnProcess.classList.remove('btn-glow-active');
             document.getElementById('progress-container').classList.remove('hidden');
             resultPanel.classList.add('hidden');
+            diffLogContainer.innerHTML = "";
             
             const sheet = comexWorkbook.Sheets[comexWorkbook.SheetNames[0]];
             const range = XLSX.utils.decode_range(sheet['!ref']);
             
-            // MAPEO DEFINITIVO: Usuario, Forwarder, Tipo flete, Monto y N° Contenedor Duplicado
             const mapping = {
-                "Usuario": ["Usuario"],
-                "Nº Embarque": ["N° Exportacion"],
-                "Contenedores": ["N° Contenedor"],
+                "Nº Embarque": ["ID Comex"],
                 "Puerto Origen": ["Puerto Origen"],
-                "País Destino": ["Pais Destino"],
-                "Tipo Contenedores": ["Tipo Contenedor"],
-                "Detalle Embarque": ["Tipo Refrigeracion"],
-                "Condicion Flete": ["Tipo flete"],
-                "Embarcador": ["Forwarder"], 
-                "Carrier / Aerolínea": ["Naviera"],
+                "Pais Destino": ["Pais Destino"],
+                "Tipo Contenedor": ["Tipo Contenedor"],
                 "Nave Origen": ["Nave"],
                 "Puerto Destino": ["POD"],
-                "Booking": ["Booking/Reserva"],
-                "Bill of Lading": ["B/L"],
-                "DUS": ["DUS"],
                 "ETD": ["Fecha ETD"],
-                "ETA": ["Fecha ETA"],
-                "Stacking Físico (desde)": ["Fecha Inicio Stacking"],
-                "Stacking Físico (hasta)": ["Fecha término Stacking"],
-                "Cut Off Documental": ["Corte Documental"],
-                "Pickup": ["Dia de carga"],
-                "Peso Bruto Total": ["KG Brutos Comex"],
-                "Nro Lotes": ["ID Lote Produccion Especifico (LPE)"],
-                "Nro Factura Exportación": ["N° Factura"],
-                "Fecha Factura Exportación": ["Fecha Factura"],
-                "Valor Factura Exportación": ["Monto Factura", "MONTO FACTURA USD"]
+                "ETA": ["Fecha ETA"]
             };
 
             const headerMap = {};
@@ -279,61 +298,84 @@
                 }
             }
 
-            const keyCols = headerMap["N° Exportacion"];
-            if (!keyCols) { alert("No se encontró columna N° Exportacion"); return; }
-            const keyCol = keyCols[0];
+            const idComexCols = headerMap["ID Comex"];
+            const nExportCols = headerMap["N° Exportacion"];
+            const keyColIdx = (idComexCols && idComexCols.length > 0) ? idComexCols[0] : (nExportCols ? nExportCols[0] : null);
 
-            let count = 0;
-            const total = range.e.r - range.s.r;
+            if (keyColIdx === null) {
+                alert("Error crítico: No se detectó 'ID Comex' en la planilla de destino.");
+                return;
+            }
+
+            let changeCount = 0;
+            const totalRows = range.e.r - range.s.r;
 
             for (let R = range.s.r + 1; R <= range.e.r; ++R) {
-                if (R % 5 === 0) {
-                    const pct = Math.round(((R - range.s.r) / total) * 100);
-                    progressFill.style.width = pct + "%";
-                    progressText.innerText = pct + "%";
-                    progressLabel.innerText = "Mapeando registros...";
-                    await new Promise(r => setTimeout(r, 1));
+                if (R % 15 === 0 || R === range.e.r) {
+                    const p = Math.round(((R - range.s.r) / totalRows) * 100);
+                    progressFill.style.width = p + "%";
+                    progressText.innerText = p + "%";
+                    await new Promise(r => setTimeout(r, 10));
                 }
 
-                const keyVal = sheet[XLSX.utils.encode_cell({r: R, c: keyCol})];
-                if (!keyVal || !keyVal.v) continue;
+                const cellAddr = XLSX.utils.encode_cell({r: R, c: keyColIdx});
+                const cellObj = sheet[cellAddr];
+                if (!cellObj || !cellObj.v) continue;
 
-                const id = String(keyVal.v).trim();
-                const source = selaskiData.find(s => String(s["Nº Embarque"] || "").trim() === id);
+                const rowId = String(cellObj.v).trim();
+                const match = selaskiData.find(s => String(s["Nº Embarque"] || "").trim() === rowId);
 
-                if (source) {
-                    count++;
+                if (match) {
+                    let hasChanges = false;
+                    let logEntries = [];
+
                     Object.entries(mapping).forEach(([srcKey, destHeaders]) => {
-                        let val = source[srcKey];
-                        if (val === undefined || val === null) return;
+                        let newValue = match[srcKey];
+                        if (newValue === undefined) return;
 
-                        const k = srcKey.toLowerCase();
-                        if (k.includes("etd") || k.includes("eta") || k.includes("fecha") || k.includes("pickup") || k.includes("stacking") || k.includes("cut off")) {
-                            val = formatDate(val);
-                        }
+                        const lowerKey = srcKey.toLowerCase();
+                        if (lowerKey === "etd" || lowerKey === "eta") newValue = formatVal(newValue);
 
-                        destHeaders.forEach(hName => {
-                            const cols = headerMap[hName];
-                            if (cols) {
-                                cols.forEach(cIdx => {
-                                    const addr = XLSX.utils.encode_cell({r: R, c: cIdx});
-                                    sheet[addr] = { t: typeof val === 'number' ? 'n' : 's', v: val };
+                        destHeaders.forEach(headerName => {
+                            const targetCols = headerMap[headerName];
+                            if (targetCols) {
+                                targetCols.forEach(colIdx => {
+                                    const targetAddr = XLSX.utils.encode_cell({r: R, c: colIdx});
+                                    const currentCell = sheet[targetAddr];
+                                    const oldVal = currentCell ? formatVal(currentCell.v) : "(vacío)";
+                                    const newValStr = formatVal(newValue);
+
+                                    if (oldVal !== newValStr) {
+                                        hasChanges = true;
+                                        logEntries.push(`<span class="text-white/40">${headerName}:</span> <span class="text-red-400/80">${oldVal}</span> ⮕ <span class="text-teal-400 font-bold">${newValStr}</span>`);
+                                        sheet[targetAddr] = { t: typeof newValue === 'number' ? 'n' : 's', v: newValue };
+                                    }
                                 });
                             }
                         });
                     });
+
+                    if (hasChanges) {
+                        changeCount++;
+                        const entry = document.createElement('div');
+                        entry.className = "diff-item text-[10px]";
+                        entry.innerHTML = `<div class="font-black text-[#F3995D] mb-1">ID ${rowId}</div>${logEntries.join('<br>')}`;
+                        diffLogContainer.appendChild(entry);
+                    }
                 }
             }
 
-            progressFill.style.width = "100%";
-            progressText.innerText = "100%";
-            document.getElementById('count-matches').innerText = count;
+            if (changeCount === 0) {
+                diffLogContainer.innerHTML = `<div class="text-center py-12 text-white/20 italic text-[10px] tracking-widest">Todo está sincronizado. No hay cambios pendientes.</div>`;
+            }
+
+            document.getElementById('count-matches').innerText = changeCount;
             resultPanel.classList.remove('hidden');
-            btnProcess.disabled = false;
+            updateBtnState();
         };
 
         btnDownload.onclick = () => {
-            XLSX.writeFile(comexWorkbook, "Reporte_Comex_Actualizado.xlsx");
+            XLSX.writeFile(comexWorkbook, "Control_Shipments_Actualizado.xlsx");
         };
     </script>
 </body>
