@@ -259,7 +259,6 @@
             reader.readAsArrayBuffer(file);
         };
 
-        // Función para formatear fechas solo en el Log visual
         function formatLogVal(val) {
             if (val === null || val === undefined || val === "") return "(vacío)";
             if (val instanceof Date) {
@@ -286,11 +285,12 @@
             await workbook.xlsx.load(comexBuffer);
             const sheet = workbook.worksheets[0];
 
+            // Ajuste de mapeo para incluir "País Destino" con tilde y "Tipo Contenedores" en plural
             const mapping = {
                 "Nº Embarque": ["ID Comex"],
                 "Puerto Origen": ["Puerto Origen"],
-                "Pais Destino": ["Pais Destino"],
-                "Tipo Contenedor": ["Tipo Contenedor"],
+                "País Destino": ["Pais Destino"], // Agregado punto validador y actualizador
+                "Tipo Contenedores": ["Tipo Contenedor"], // Ajustado por cambio en archivo Selaski
                 "Nave Origen": ["Nave"],
                 "Puerto Destino": ["POD"],
                 "ETD": ["Fecha ETD"],
@@ -348,7 +348,6 @@
                                 targetCols.forEach(colIdx => {
                                     const cell = row.getCell(colIdx);
                                     
-                                    // Comparamos valores raw pero logueamos formateado
                                     const rawOld = cell.value;
                                     const oldStr = formatLogVal(rawOld);
                                     const newStr = formatLogVal(newValue);
